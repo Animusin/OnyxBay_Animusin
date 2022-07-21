@@ -23,6 +23,13 @@
 		else if(P.is_active && P.verbpath)
 			verbs += P.verbpath
 
+	if (ishuman(src))
+		var/mob/living/carbon/human/H = src
+		for(var/obj/item/organ/org in H.organs)
+			if(org != BP_EYES || org != BP_BRAIN)
+				org.die() //organ murder
+		H.remove_blood(H.vessel.get_reagent_amount(/datum/reagent/blood))   //blood delete
+		H.does_not_breathe = TRUE
 	return TRUE
 
 // Checks the vampire's bloodlevel and unlocks new powers based on that.
