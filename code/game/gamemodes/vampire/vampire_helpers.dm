@@ -25,11 +25,13 @@
 
 	if (ishuman(src))
 		var/mob/living/carbon/human/H = src
-		for(var/obj/item/organ/org in H.organs)
-			if(org != BP_EYES || org != BP_BRAIN)
+		for(var/obj/item/organ/org in H.internal_organs)
+			if(!(org.organ_tag == BP_BRAIN || org.organ_tag == BP_EYES))
+				org.vital = 0
 				org.die() //organ murder
 		H.remove_blood(H.vessel.get_reagent_amount(/datum/reagent/blood))   //blood delete
 		H.does_not_breathe = TRUE
+		H.chem_effects += CE_ANTIBIOTIC
 	return TRUE
 
 // Checks the vampire's bloodlevel and unlocks new powers based on that.
