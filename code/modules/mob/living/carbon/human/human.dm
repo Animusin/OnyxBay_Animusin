@@ -763,7 +763,7 @@
 
 /mob/living/carbon/human/proc/vomit(toxvomit = 0, timevomit = 1, level = 3)
 	set waitfor = 0
-	if(!check_has_mouth() || isSynthetic() || !timevomit || !level)
+	if(!check_has_mouth() || isSynthetic() || !timevomit || !level || mind.vampire)
 		return
 	level = Clamp(level, 1, 3)
 	timevomit = Clamp(timevomit, 1, 10)

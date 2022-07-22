@@ -925,3 +925,32 @@
 	..()
 	M.add_chemical_effect(CE_TOXIN, 1)
 	M.immunity -= 0.5 //inverse effects when abused
+
+/datum/reagent/vampiric_blood
+	name = "Vite"
+	description = "A viscous dark red liquid, similar to thickened blood. It seems that she gleams and gurgles ominously."
+	taste_description = "ashen"
+	reagent_state = LIQUID
+	color = "#7a0303"
+	metabolism = REM * 0
+	excretion = 0	
+	scannable = 1
+	data = 0
+
+/datum/reagent/vampiric_blood/affect_blood(mob/living/carbon/M, alien, removed)
+	if(alien == IS_DIONA)
+		return
+	if (M.mind.vampire)
+		M.immunity = M.immunity_norm
+		M.add_chemical_effect(CE_PAINKILLER, 20)
+		M.add_chemical_effect(CE_ANTIVIRAL, VIRUS_EXOTIC)
+		M.add_chemical_effect(CE_STABLE)
+		M.add_chemical_effect(CE_ANTIBIOTIC, 1)
+		M.germ_level = 0
+		M.vampire_dying()
+		M.get_blood_usable()
+		//M.status_flags |= FAKEDEATH
+		//..M.add_chemical_effect(CE_NOPULSE, 1)
+		//M.heal_organ_damage(3 * removed, 3 * removed)
+		return
+	M.add_chemical_effect(CE_TOXIN, 1)

@@ -794,7 +794,7 @@
 					health_images += image('icons/mob/screen1_health.dmi', "burning")
 
 				// Show a general pain/crit indicator if needed.
-				if(is_asystole())
+				if(is_asystole() && !mind.vampire)
 					health_images += image('icons/mob/screen1_health.dmi', "hardcrit")
 				else if(trauma_val)
 					if(canfeelpain)

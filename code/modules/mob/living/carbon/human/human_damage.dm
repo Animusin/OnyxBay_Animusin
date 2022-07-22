@@ -223,7 +223,7 @@
 	BITSET(hud_updateflag, HEALTH_HUD)
 
 /mob/living/carbon/human/getToxLoss() // In fact, returns internal organs damage. Should be reworked sometime in the future.
-	if((species.species_flags & SPECIES_FLAG_NO_POISON) || isSynthetic())
+	if((species.species_flags & SPECIES_FLAG_NO_POISON) || isSynthetic() || mind.vampire )
 		return 0
 	var/amount = 0
 	for(var/obj/item/organ/internal/I in internal_organs)

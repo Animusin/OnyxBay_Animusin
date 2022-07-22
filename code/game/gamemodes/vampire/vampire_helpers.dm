@@ -12,8 +12,12 @@
 		for(var/P in vampirepower_types)
 			vampirepowers += new P()
 
-	mind.vampire.blood_usable += 30
-
+	if (ishuman(src))
+		var/mob/living/carbon/human/H = src
+		H.reagents.add_reagent(/datum/reagent/vampiric_blood, 30)
+		mind.vampire.blood_usable = H.reagents.get_reagent_amount(/datum/reagent/vampiric_blood)
+		
+	
 	verbs += /datum/game_mode/vampire/verb/vampire_help
 
 	for(var/datum/power/vampire/P in vampirepowers)
@@ -22,7 +26,10 @@
 				mind.vampire.add_power(mind, P, 0)
 		else if(P.is_active && P.verbpath)
 			verbs += P.verbpath
+	vampire_dying(src)		
+	return TRUE
 
+/mob/proc/vampire_dying()
 	if (ishuman(src))
 		var/mob/living/carbon/human/H = src
 		for(var/obj/item/organ/org in H.internal_organs)
@@ -31,7 +38,6 @@
 				org.die() //organ murder
 		H.remove_blood(H.vessel.get_reagent_amount(/datum/reagent/blood))   //blood delete
 		H.does_not_breathe = TRUE
-		H.chem_effects += CE_ANTIBIOTIC
 	return TRUE
 
 // Checks the vampire's bloodlevel and unlocks new powers based on that.
@@ -67,7 +73,7 @@
 	if (stat > max_stat)
 		to_chat(src, SPAN_WARNING("You are incapacitated."))
 		return
-	if (required_blood > vampire.blood_usable)
+	if (required_blood > src.reagents.get_reagent_amount(/datum/reagent/vampiric_blood))
 		to_chat(src, SPAN_WARNING("You do not have enough usable blood. [required_blood] needed."))
 		return
 
@@ -237,10 +243,10 @@
 	if (istype(get_area(loc), /area/chapel))
 		mind.vampire.frenzy += 3
 
-	if (mind.vampire.blood_usable < 10)
+	if (src.reagents.get_reagent_amount(/datum/reagent/vampiric_blood) < 10)
 		mind.vampire.frenzy += 2
 	else if (mind.vampire.frenzy > 0)
-		mind.vampire.frenzy = max(0, mind.vampire.frenzy - Clamp(mind.vampire.blood_usable * 0.1, 1, 10))
+		mind.vampire.frenzy = max(0, mind.vampire.frenzy - Clamp(src.reagents.get_reagent_amount(/datum/reagent/vampiric_blood) * 0.1, 1, 10))
 
 	mind.vampire.frenzy = min(mind.vampire.frenzy, 450)
 
@@ -254,3 +260,20 @@
 	if (vamp_flags && !(mind.vampire.status & vamp_flags))
 		return FALSE
 	return TRUE
+
+/mob/proc/use_blood(blood_to_use)
+	if (!blood_to_use || blood_to_use <= 0)
+		return
+	src.reagents.remove_reagent(/datum/reagent/vampiric_blood, max(0, src.reagents.get_reagent_amount(/datum/reagent/vampiric_blood) - blood_to_use))
+	mind.vampire.blood_usable = src.reagents.get_reagent_amount(/datum/reagent/vampiric_blood)
+	//blood_usable = max(0, blood_usable - blood_to_use)
+
+/mob/proc/add_vampiric_blood(blood_to_add)
+	if (!blood_to_add || blood_to_add <= 0)
+		return
+	src.reagents.add_reagent(/datum/reagent/vampiric_blood, blood_to_add)
+
+/mob/proc/get_blood_usable()
+	var/blood_amount = src.reagents.get_reagent_amount(/datum/reagent/vampiric_blood)
+	mind.vampire.blood_usable = blood_amount
+	return blood_amount

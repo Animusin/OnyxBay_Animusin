@@ -25,7 +25,7 @@
 /obj/item/organ/internal/liver/Process()
 
 	..()
-	if(!owner)
+	if(!owner || owner.mind.vampire)
 		return
 
 	if (germ_level > INFECTION_LEVEL_ONE)
