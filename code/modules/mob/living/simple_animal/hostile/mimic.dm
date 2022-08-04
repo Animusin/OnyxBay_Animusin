@@ -81,6 +81,13 @@ var/global/list/protected_objects = list(
 
 	if(_in_trap_mode)
 		_deactivate_trap()
+	
+	// Hack, `/obj/structure/bed` types have custom logic based on
+	// their self direction and that can significantly change appearance.
+	if(istype(copy_of, /obj/structure/bed))
+		copy_of.set_dir(dir)
+		copy_of.update_icon()
+		appearance = copy_of
 
 /mob/living/simple_animal/hostile/mimic/proc/_update_inactive_time()
 	inactive_time = world.time
@@ -129,16 +136,22 @@ var/global/list/protected_objects = list(
 	_handle_contents()
 
 /mob/living/simple_animal/hostile/mimic/proc/_update_verbs()
-	verbs.Cut()
-
 	var/obj/item/C = copy_of
 
 	if(!is_target_valid_for_mimicry(C))
 		return
 
 	if(C.w_class < ITEM_SIZE_NORMAL)
-		verbs += /mob/living/proc/ventcrawl
-		verbs += /mob/living/proc/hide
+		verbs |= /mob/living/proc/ventcrawl
+		verbs |= /mob/living/proc/hide
+	else
+		verbs ^= /mob/living/proc/ventcrawl
+		verbs ^= /mob/living/proc/hide
+
+	if(can_setup_trap())
+		verbs |= /mob/living/simple_animal/hostile/mimic/verb/Trap
+	else
+		verbs ^= /mob/living/simple_animal/hostile/mimic/verb/Trap
 
 /mob/living/simple_animal/hostile/mimic/proc/_handle_healing()
 	var/healing_check = world.time > inactive_time + WAIT_TO_HEAL
@@ -275,10 +288,10 @@ var/global/list/protected_objects = list(
 	if(QDELETED(O))
 		return FALSE
 
-	if(O.anchored)
+	if((!istype(O, /obj/item) && !istype(O, /obj/structure)))
 		return FALSE
 
-	if((!istype(O, /obj/item) && !istype(O, /obj/structure)))
+	if(O.anchored)
 		return FALSE
 	
 	if(is_type_in_list(O, protected_objects))
@@ -430,6 +443,10 @@ var/global/list/protected_objects = list(
 		".50 magnum pistol" = /obj/item/gun/projectile/pistol/magnum_pistol,
 		"rubber piggy" = /obj/item/toy/pig
 	)
+
+	if(!can_setup_trap())
+		to_chat(usr, SPAN("warning", "You can't do it in your current form"))
+		return
 
 	if(anchored)
 		to_chat(usr, SPAN("warning", "You can't move"))
