@@ -141,7 +141,7 @@
 	return (get_current_damage_threshold() > threshold)
 
 /obj/item/organ/internal/brain/Process()
-	if(owner)
+	if(owner && !(owner?.status_flags & UNDEAD))
 		if(damage > max_damage / 2 && healed_threshold)
 			spawn()
 				alert(owner, "You have taken massive brain damage! You will not be able to remember the events leading up to your injury.", "Brain Damaged")

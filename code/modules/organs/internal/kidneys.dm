@@ -17,7 +17,7 @@
 /obj/item/organ/internal/kidneys/Process()
 	..()
 
-	if(!owner)
+	if(!owner || (owner?.status_flags & UNDEAD))
 		return
 
 	// Coffee is really bad for you with busted kidneys.
@@ -37,5 +37,3 @@
 				owner.adjustToxLoss(0.5)
 			if(status & ORGAN_DEAD)
 				owner.adjustToxLoss(1)
-
-
