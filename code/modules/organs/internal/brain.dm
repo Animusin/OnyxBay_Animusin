@@ -141,7 +141,7 @@
 	return (get_current_damage_threshold() > threshold)
 
 /obj/item/organ/internal/brain/Process()
-	if(owner && !(owner?.status_flags & UNDEAD))
+	if(owner)
 		if(damage > max_damage / 2 && healed_threshold)
 			spawn()
 				alert(owner, "You have taken massive brain damage! You will not be able to remember the events leading up to your injury.", "Brain Damaged")
@@ -154,7 +154,7 @@
 		handle_damage_effects()
 
 		// Brain damage from low oxygenation or lack of blood.
-		if(owner.should_have_organ(BP_HEART))
+		if(owner.should_have_organ(BP_HEART) && !(owner.status_flags & UNDEAD))
 
 			// No heart? You are going to have a very bad time. Not 100% lethal because heart transplants should be a thing.
 			var/blood_volume = owner.get_blood_oxygenation()
