@@ -721,7 +721,7 @@
 	if(vampire.status & VAMP_FULLPOWER)
 		command = sanitizeSafe(command, extra = 0)
 	else
-		command = sanitizeSafe(command, extra = 1)
+		command = sanitizeSafe(command)
 		var/spaceposition = findtext(command, " ")
 		if(spaceposition)
 			command = copytext_char(command, 1, spaceposition+1)
