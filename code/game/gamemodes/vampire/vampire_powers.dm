@@ -708,13 +708,23 @@
 	else
 		to_chat(src, SPAN_NOTICE("You instantly dominate [T]'s mind, forcing them to obey your command."))
 
-	var/command = input(src, "Command your victim.", "Your command.") as text|null
+	var/command
+	if(vampire.status & VAMP_FULLPOWER)
+		command = input(src, "Command your victim.", "Your command.") as text|null
+	else
+		command = input(src, "Command your victim with single word.", "Your command.") as text|null
 
 	if (!command)
 		to_chat(src, "<span class='alert'>Cancelled.</span>")
 		return
 
-	command = sanitizeSafe(command, extra = 0)
+	if(vampire.status & VAMP_FULLPOWER)
+		command = sanitizeSafe(command, extra = 0)
+	else
+		command = sanitizeSafe(command, extra = 1)
+		var/spaceposition = findtext(command, " ")
+		if(spaceposition)
+			command = copytext_char(command, 1, spaceposition+1)
 
 	admin_attack_log(src, T, "used dominate on [key_name(T)]", "was dominated by [key_name(src)]", "used dominate and issued the command of '[command]' to")
 
@@ -722,7 +732,7 @@
 	to_chat(T, SPAN_NOTICE("You feel a strong presence enter your mind. For a moment, you hear nothing but what it says, and are compelled to follow its direction without question or hesitation:"))
 	to_chat(T, "<span style='color: green;'><i><em>[command]</em></i></span>")
 	to_chat(src, SPAN_NOTICE("You command [T], and they will obey."))
-	emote("me", 1, "whispers.")
+	say(command)
 
 	vampire.use_blood(power_use_cost)
 	verbs -= /mob/living/carbon/human/proc/vampire_dominate
