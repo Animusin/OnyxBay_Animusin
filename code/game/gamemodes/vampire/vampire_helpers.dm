@@ -14,6 +14,8 @@
 	H.does_not_breathe = 1
 	H.remove_blood(H.species.blood_volume)
 	mind.vampire.blood_usable = 30
+	H.vessel.add_reagent(/datum/reagent/blood/vampiric, 5 * 30)
+	H.fixblood()
 	H.status_flags |= UNDEAD
 	H.oxygen_alert = 0
 	H.add_modifier(/datum/modifier/trait/low_metabolism)
@@ -54,10 +56,14 @@
 	if (!blood_to_use || blood_to_use <= 0)
 		return FALSE
 	blood_usable -= min(blood_to_use, blood_usable)
+	owner.vessel.remove_reagent(/datum/reagent/blood/vampiric, 8 * blood_to_use)
 	return TRUE
 
 /datum/vampire/proc/gain_blood(blood_to_get)
 	blood_usable += blood_to_get
+	owner.vessel.add_reagent(/datum/reagent/blood/vampiric, 8 * blood_to_get)
+	if(blood_usable == 0)
+		owner.fixblood()
 	return
 
 
@@ -264,6 +270,8 @@
 		mind.vampire.frenzy += 3		
 		if(prob(20))
 			to_chat(src, "You feel like you`re burning!")
+	
+	mind.vampire.blood_usable = reagents.get_reagent_amount(datum/reagent/blood/vampiric) / 8
 
 	if (mind.vampire.blood_usable < 10)
 		mind.vampire.frenzy += 2
@@ -284,3 +292,38 @@
 	if (vamp_flags && !(mind.vampire.status & vamp_flags))
 		return FALSE
 	return TRUE
+
+/datum/reagent/blood/vampiric
+	name = "Strange blood"
+	reagent_state = LIQUID
+	metabolism = REM * 10
+	color = "#6d0000"
+	taste_description = "ashy iron"
+	taste_mult = 1.3
+	glass_name = "tainted tomato juice"
+	glass_desc = "Are you sure this is tomato juice?"
+	scannable = 1
+
+/datum/reagent/blood/vampiric/affect_blood(mob/living/carbon/M, alien, removed)
+	if(M.mind?.vampire?.status == VAMP_ISTHRALL)
+		M.add_chemical_effect(CE_ANTIVIRAL, VIRUS_COMMON)
+		M.add_chemical_effect(CE_ANTIBIOTIC, 1)
+		if(prob(volume*20))
+			M.add_chemical_effect(CE_PULSE, 1)
+		M.add_chemical_effect(CE_PAINKILLER, min(30*volume, 80))
+		M.heal_organ_damage(1 * removed, 1 * removed)
+	else
+		M.adjustToxLoss(volume)
+		remove_self(volume)
+
+/datum/reagent/blood/vampiric/affect_ingest(mob/living/carbon/M, alien, removed)
+	if(data && data["virus2"])
+		var/list/vlist = data["virus2"]
+		if(vlist.len)
+			for(var/ID in vlist)
+				var/datum/disease2/disease/V = vlist[ID]
+				if(V && V.spreadtype == "Contact")
+					infect_virus2(M, V.getcopy())
+	
+	if(M.mind?.vampire?.status == VAMP_ISTHRALL)
+		affect_blood(M, alien, removed)

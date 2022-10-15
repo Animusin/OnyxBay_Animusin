@@ -800,7 +800,7 @@
 	to_chat(user, SPAN_NOTICE("You have completed the thralling process. They are now your slave and will obey your commands."))
 	admin_attack_log(user, T, "enthralled [key_name(T)]", "was enthralled by [key_name(user)]", "successfully enthralled")
 
-	vampire.use_blood(power_use_cost)
+	user.vessel.trans_to_mob(T, power_use_cost * 8, type = CHEM_BLOOD)
 	user.verbs -= /datum/vampire/proc/vampire_enthrall
 	ADD_VERB_IN_IF(user, 2800, /datum/vampire/proc/vampire_enthrall, CALLBACK(user, /mob/living/carbon/human/proc/finish_vamp_timeout))
 
