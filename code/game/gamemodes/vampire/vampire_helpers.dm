@@ -169,9 +169,6 @@
 		return
 
 	var/datum/vampire/vampire = mind.vampire
-	// Thralls don't frenzy.
-	if (vampire.status & VAMP_ISTHRALL)
-		return
 
 /*
  * Misc info:
@@ -183,6 +180,9 @@
 	if (vampire.status & VAMP_FRENZIED)
 		if (vampire.frenzy < 10)
 			vampire_stop_frenzy()
+		if (vampire.status & VAMP_ISTHRALL)
+			if (prob(5))
+				custom_pain("It feels like youe veins are on fire!", 40)
 	else
 		var/next_alert = 0
 		var/message = ""
@@ -224,14 +224,18 @@
 
 	if (prob(probablity))
 		vampire.status |= VAMP_FRENZIED
-		visible_message(SPAN_DANGER("A dark aura manifests itself around [src.name], their eyes turning red and their composure changing to be more beast-like."), SPAN_DANGER("You can resist no longer. The power of the Veil takes control over your mind: you are unable to speak or think. In people, you see nothing but prey to be feasted upon. You are reduced to an animal."))
+		if (vampire.status & VAMP_ISTHRALL)
+			visible_message(SPAN_DANGER("A dark aura manifests itself around [src.name], their face being distorted from anger and pain."), SPAN_DANGER("You can resist no longer. You should find your source of vite and feast upon it.")
+			sight |= SEE_MOBS			
+		else
+			visible_message(SPAN_DANGER("A dark aura manifests itself around [src.name], their eyes turning red and their composure changing to be more beast-like."), SPAN_DANGER("You can resist no longer. The power of the Veil takes control over your mind: you are unable to speak or think. In people, you see nothing but prey to be feasted upon. You are reduced to an animal."))
 
-		mutations.Add(MUTATION_HULK)
-		update_mutations()
+			mutations.Add(MUTATION_HULK)
+			update_mutations()
 
-		sight |= SEE_MOBS
+			sight |= SEE_MOBS
 
-		verbs += /datum/vampire/proc/grapple
+			verbs += /datum/vampire/proc/grapple
 
 /mob/proc/vampire_stop_frenzy(force_stop = 0)
 	var/datum/vampire/vampire = mind.vampire
@@ -242,15 +246,19 @@
 	if (prob(force_stop ? 100 : vampire.blood_usable))
 		vampire.status &= ~VAMP_FRENZIED
 
-		mutations.Remove(MUTATION_HULK)
-		update_mutations()
+		if (vampire.status & VAMP_ISTHRALL)
+			sight &= ~SEE_MOBS
+			visible_message(SPAN_DANGER("[src.name]'s face is no longer filled with violent agony, reverting to resemble that of a normal person's."), SPAN_DANGER("The beast within you retreats. You gain control over your body once more."))
+		else
+			mutations.Remove(MUTATION_HULK)
+			update_mutations()
 
-		sight &= ~SEE_MOBS
+			sight &= ~SEE_MOBS
 
-		visible_message(SPAN_DANGER("[src.name]'s eyes no longer glow with violent rage, their form reverting to resemble that of a normal person's."), SPAN_DANGER("The beast within you retreats. You gain control over your body once more."))
+			visible_message(SPAN_DANGER("[src.name]'s eyes no longer glow with violent rage, their form reverting to resemble that of a normal person's."), SPAN_DANGER("The beast within you retreats. You gain control over your body once more."))
 
-		verbs -= /datum/vampire/proc/grapple
-		regenerate_icons()
+			verbs -= /datum/vampire/proc/grapple
+			regenerate_icons()
 
 // Removes all vampire powers.
 /mob/proc/remove_vampire_powers()
@@ -270,8 +278,10 @@
 		mind.vampire.frenzy += 3		
 		if(prob(20))
 			to_chat(src, "You feel like you`re burning!")
-	
-	mind.vampire.blood_usable = reagents.get_reagent_amount(datum/reagent/blood/vampiric) / 8
+	if (mind?.vampire?.status & VAMP_ISTHRALL)
+		mind.vampire.blood_usable = reagents.get_reagent_amount(datum/reagent/blood/vampiric) / 8
+	else
+		mind.vampire.blood_usable = vessel.get_reagent_amount(datum/reagent/blood/vampiric) / 8
 
 	if (mind.vampire.blood_usable < 10)
 		mind.vampire.frenzy += 2
@@ -305,7 +315,7 @@
 	scannable = 1
 
 /datum/reagent/blood/vampiric/affect_blood(mob/living/carbon/M, alien, removed)
-	if(M.mind?.vampire?.status == VAMP_ISTHRALL)
+	if(M.mind?.vampire?.status & VAMP_ISTHRALL)
 		M.add_chemical_effect(CE_ANTIVIRAL, VIRUS_COMMON)
 		M.add_chemical_effect(CE_ANTIBIOTIC, 1)
 		if(prob(volume*20))
@@ -325,5 +335,5 @@
 				if(V && V.spreadtype == "Contact")
 					infect_virus2(M, V.getcopy())
 	
-	if(M.mind?.vampire?.status == VAMP_ISTHRALL)
+	if(M.mind?.vampire?.status & VAMP_ISTHRALL)
 		affect_blood(M, alien, removed)
