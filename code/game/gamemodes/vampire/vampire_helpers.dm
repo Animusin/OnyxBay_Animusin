@@ -13,8 +13,9 @@
 	H.replace_vampiric_organs()
 	H.does_not_breathe = 1
 	H.remove_blood(H.species.blood_volume)
+	H.vessel.maximum_volume = 30000
 	mind.vampire.blood_usable = 30
-	H.vessel.add_reagent(/datum/reagent/blood/vampiric, 5 * 30)
+	H.vessel.add_reagent(/datum/reagent/blood/vampiric, 8 * 30)
 	H.fixblood()
 	H.status_flags |= UNDEAD
 	H.oxygen_alert = 0
@@ -182,7 +183,7 @@
 			vampire_stop_frenzy()
 		if (vampire.status & VAMP_ISTHRALL)
 			if (prob(5))
-				custom_pain("It feels like youe veins are on fire!", 40)
+				vampire.owner.custom_pain("It feels like your veins are on fire!", 40)
 	else
 		var/next_alert = 0
 		var/message = ""
@@ -225,8 +226,8 @@
 	if (prob(probablity))
 		vampire.status |= VAMP_FRENZIED
 		if (vampire.status & VAMP_ISTHRALL)
-			visible_message(SPAN_DANGER("A dark aura manifests itself around [src.name], their face being distorted from anger and pain."), SPAN_DANGER("You can resist no longer. You should find your source of vite and feast upon it.")
-			sight |= SEE_MOBS			
+			visible_message(SPAN_DANGER("A dark aura manifests itself around [src.name], their face being distorted from anger and pain."), SPAN_DANGER("You can resist no longer. You should find your source of vite and feast upon it."))
+			sight |= SEE_MOBS		
 		else
 			visible_message(SPAN_DANGER("A dark aura manifests itself around [src.name], their eyes turning red and their composure changing to be more beast-like."), SPAN_DANGER("You can resist no longer. The power of the Veil takes control over your mind: you are unable to speak or think. In people, you see nothing but prey to be feasted upon. You are reduced to an animal."))
 
@@ -279,9 +280,9 @@
 		if(prob(20))
 			to_chat(src, "You feel like you`re burning!")
 	if (mind?.vampire?.status & VAMP_ISTHRALL)
-		mind.vampire.blood_usable = reagents.get_reagent_amount(datum/reagent/blood/vampiric) / 8
+		mind.vampire.blood_usable = reagents.get_reagent_amount(/datum/reagent/blood/vampiric) * 0.125
 	else
-		mind.vampire.blood_usable = vessel.get_reagent_amount(datum/reagent/blood/vampiric) / 8
+		mind.vampire.blood_usable = vessel.get_reagent_amount(/datum/reagent/blood/vampiric) * 0.125
 
 	if (mind.vampire.blood_usable < 10)
 		mind.vampire.frenzy += 2
