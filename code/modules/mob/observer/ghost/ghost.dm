@@ -254,8 +254,6 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 	return TRUE
 
 /mob/living/carbon/human/may_ghost()
-	if(istype(loc, /obj/machinery/cryopod))
-		return TRUE
 	if(internal_organs_by_name[BP_BRAIN])
 		var/obj/item/organ/internal/cerebrum/brain/brain = internal_organs_by_name[BP_BRAIN]
 		if(brain.is_broken() && stat == UNCONSCIOUS)
@@ -275,6 +273,40 @@ This is the proc mobs get to turn into a ghost. Forked from ghostize due to comp
 
 /mob/living/silicon/robot/drone/may_ghost()
 	return TRUE
+
+/mob/living/carbon/human/verb/respawn()
+	set name = "Respawn"
+	set category = "OOC"
+
+	if(!(config.misc.abandon_allowed))
+		to_chat(src, SPAN_NOTICE("Respawn is disabled."))
+		return
+
+	if(!SSticker.mode)
+		to_chat(src, SPAN_NOTICE("<B>You may not attempt to respawn yet.</B>"))
+		return
+
+	if(SSticker.mode.deny_respawn)
+		to_chat(src, SPAN_NOTICE("Respawn is disabled for this roundtype."))
+		return
+
+	if(!MayRespawn(1, config.misc.respawn_delay))
+		return
+
+	to_chat(src, "You can respawn now, enjoy your new life!")
+	to_chat(src, SPAN_NOTICE("<B>Make sure to play a different character, and please roleplay correctly!</B>"))
+	announce_ghost_joinleave(client, 0)
+
+	client.screen.Cut()
+	var/mob/new_player/M = new /mob/new_player()
+	M.key = key
+	M.client?.init_verbs()
+	log_and_message_admins("has respawned.", M)
+
+/mob/living/carbon/human/MayRespawn()
+	if(istype(loc, /obj/machinery/cryopod))
+		return TRUE
+	return FALSE
 
 /mob/observer/ghost/can_use_hands()
 	return 0
